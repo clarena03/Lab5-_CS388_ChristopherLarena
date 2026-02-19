@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.codepath.campgrounds.databinding.ActivityMainBinding
 import com.codepath.asynchttpclient.AsyncHttpClient
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler
@@ -25,10 +24,9 @@ private val CAMPGROUNDS_URL =
     "https://developer.nps.gov/api/v1/campgrounds?api_key=${PARKS_API_KEY}"
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var campgroundsRecyclerView: RecyclerView
     private lateinit var binding: ActivityMainBinding
+    private val campgrounds = mutableListOf<Campground>()
 
-    // TODO: Create campgrounds list
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,14 +35,12 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        campgroundsRecyclerView = findViewById(R.id.campgrounds)
+        val campgroundAdapter = CampgroundAdapter(this, campgrounds)
+        binding.campgrounds.adapter = campgroundAdapter
 
-        // TODO: Set up CampgroundAdapter with campgrounds
-
-
-        campgroundsRecyclerView.layoutManager = LinearLayoutManager(this).also {
+        binding.campgrounds.layoutManager = LinearLayoutManager(this).also {
             val dividerItemDecoration = DividerItemDecoration(this, it.orientation)
-            campgroundsRecyclerView.addItemDecoration(dividerItemDecoration)
+            binding.campgrounds.addItemDecoration(dividerItemDecoration)
         }
 
         val client = AsyncHttpClient()
@@ -61,11 +57,14 @@ class MainActivity : AppCompatActivity() {
             override fun onSuccess(statusCode: Int, headers: Headers, json: JSON) {
                 Log.i(TAG, "Successfully fetched campgrounds: $json")
                 try {
-                    // TODO: Create the parsedJSON
-
-                    // TODO: Do something with the returned json (contains campground information)
-
-                    // TODO: Save the campgrounds and reload the screen
+                    val parsedJson = createJson().decodeFromString(
+                        CampgroundResponse.serializer(),
+                        json.jsonObject.toString()
+                    )
+                    parsedJson.data?.let { list ->
+                        campgrounds.addAll(list)
+                        campgroundAdapter.notifyDataSetChanged()
+                    }
 
                 } catch (e: JSONException) {
                     Log.e(TAG, "Exception: $e")

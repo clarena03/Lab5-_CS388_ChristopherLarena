@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
@@ -7,7 +10,9 @@ plugins {
 
 def apikeyPropertiesFile = rootProject.file("apikey.properties")
 def apikeyProperties = new Properties()
-apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
+if (apikeyPropertiesFile.exists()) {
+    apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
+}
 
 android {
     namespace "com.codepath.campgrounds"
@@ -22,7 +27,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "API_KEY", "\"${apikeyProperties['API_KEY']}\"")
+        buildConfigField("String", "API_KEY", "\"${apikeyProperties.getProperty('API_KEY', 'YOUR_API_KEY_HERE')}\"")
     }
 
     buildTypes {
